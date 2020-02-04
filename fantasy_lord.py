@@ -37,6 +37,7 @@ def create_schedule(teams, weeks, seed):
 
 SCHEDULE = create_schedule(TEAMS, 9, SEED)
 
+# TODO(Alex.R) Move this out into a proper test.
 if False:
     print("Doing some testing")
     print("Testing round_robin")

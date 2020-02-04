@@ -4,33 +4,13 @@ from collections import namedtuple
 from datetime import datetime, timedelta
 import unidecode
 from bs4 import BeautifulSoup
-# NA = LeagueId 2
-# NA-2019 6
-# EU = LeagueId 3
-# EU-2019 8
-# Bracket Hash
-# d78b9f9d-0ae3-416d-b458-a048143a177c
 
-
+# TODO(Alex.R) Move this information into stone
 # start_time = datetime(2019, 1, 15)
 #start_time = datetime(2019, 5, 28)
 start_time = datetime(2020, 1, 22)
 WEEKS = [start_time + timedelta(weeks=i) for i in range(20)]
 
-
-# TODO(Alex.R) Make this less crappy
-# def get_week(ts):
-#     for i, week in enumerate(WEEKS):
-#         if ts < week:
-#             res = i - 1
-#             # NOTE(Alex.R) This is to handle rift rivals instead of changing the times
-#             if res == 4 or res == 5:
-#                 return "off"
-#             if res > 5:
-#                 res -= 2
-#             return res
-#     print("You dumbass")
-#     return 1000000
 
 def get_week(ts):
     for i, week in enumerate(WEEKS):
@@ -38,6 +18,7 @@ def get_week(ts):
             return i
     print("Something bad happened in get week")
     return 10000
+
 
 def get_this_week():
     return get_week(datetime.now())
@@ -95,7 +76,6 @@ def process_game(game):
                                              stats['pentaKills'],
                                              minions))
         team_id_to_name[par['teamId']] = player_name.split()[0]
-
     team_stats = []
     for team in game["teams"]:
         team_name = team_id_to_name[team['teamId']]
@@ -142,8 +122,6 @@ def get_points(week, all_records):
         r_name = unidecode.unidecode(record.name.lower())
         res[r_name] = res.get(r_name, 0) + calculate_points(record)
     return res
-
-
 
 
 def get_game_stats(game_info):
@@ -291,29 +269,3 @@ def get_stats():
         for player, stat in week_stats.items():
             stats[player][week - 1] = stat
     return stats
-
-
-if False:
-    print(build_mystic_library()[0])
-
-
-if False:
-    NA = r.get(
-        "http://api.lolesports.com/api/v1/scheduleItems?leagueId=2").json()
-    EU = r.get(
-        "http://api.lolesports.com/api/v1/scheduleItems?leagueId=3").json()
-    lec = EU["highlanderTournaments"][8]
-    lec_2019_id = lec["id"]
-    lec_reg_season_key = 'd78b9f9d-0ae3-416d-b458-a048143a177c'
-    GNAR = get_all_stats(lec, lec_reg_season_key)
-
-if False:
-    POINTS = points_me_now(7)
-
-if False:
-    res = {}
-    for i in range(1, 5):
-        res[i] = points_me_now(i)
-
-if False:
-    stats = get_stats()
