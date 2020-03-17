@@ -13,9 +13,17 @@ WEEKS = [start_time + timedelta(weeks=i) for i in range(20)]
 
 
 def get_week(ts):
+    res = False
     for i, week in enumerate(WEEKS):
         if ts < week:
-            return i
+            res = i
+    if res:
+        if res == 8:
+            return "off"
+        elif res > 8:
+            return res - 1
+        else:
+            return res
     print("Something bad happened in get week")
     return 10000
 
@@ -140,6 +148,7 @@ def get_game_stats(game_info, retry=3):
         print("Bad game stats request error code {}".format(resp.status_code))
         return None
     return resp.json()
+
 
 
 def get_all_stats(league, key, verbose=False):
