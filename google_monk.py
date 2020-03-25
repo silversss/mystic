@@ -10,7 +10,7 @@ from oauth2client.service_account import ServiceAccountCredentials
 
 
 def get_session(cred_file="mystic_creds.json"):
-    """ This will return the logged in sesson for the spreadsheet"""
+    """ This will return the logged in session for the spreadsheet"""
     scope = ['https://spreadsheets.google.com/feeds',
              'https://www.googleapis.com/auth/drive']
     credentials = ServiceAccountCredentials.from_json_keyfile_name(cred_file,
@@ -224,6 +224,3 @@ if __name__ == "__main__":
         for i in range(9):
             time.sleep(110)
             write_week_matchups(i, test=False, create_sheet=True)
-        
-        
-            
