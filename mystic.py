@@ -4,6 +4,7 @@ from collections import namedtuple
 from datetime import datetime, timedelta
 import unidecode
 from bs4 import BeautifulSoup
+from stone import ID_TOKEN
 
 # TODO(Alex.R) Move this information into stone
 # start_time = datetime(2019, 1, 15)
@@ -139,7 +140,7 @@ def get_game_stats(game_info, retry=3):
     url = baseMatchHistoryStatsUrl.format(game_info["realm"],
                                           game_info["matchHistoryId"],
                                           game_info["hash"])
-    headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.117 Safari/537.36', 'cookie': "id_token=eyJraWQiOiJzMSIsImFsZyI6IlJTMjU2In0.eyJzdWIiOiJhNjEwNzk3Ni0xOTY1LTVjMTktODM3NC0yM2Q3ZWUzNjE1MDIiLCJjb3VudHJ5IjoidXNhIiwiYW1yIjpbInBhc3N3b3JkIl0sImlzcyI6Imh0dHBzOlwvXC9hdXRoLnJpb3RnYW1lcy5jb20iLCJsb2wiOlt7ImN1aWQiOjM0NTQ5MDMwLCJjcGlkIjoiTkExIiwidWlkIjozNDU0OTAzMCwidW5hbWUiOiJzaWx2ZXJzc3MiLCJwdHJpZCI6bnVsbCwicGlkIjoiTkEiLCJzdGF0ZSI6IkVOQUJMRUQifV0sImxvY2FsZSI6ImVuX1VTIiwiYXVkIjoicnNvLXdlYi1jbGllbnQtcHJvZCIsImFjciI6InVybjpyaW90OmJyb256ZSIsImxvbF9yZWdpb24iOlt7ImFjdGl2ZSI6dHJ1ZSwiY3BpZCI6Ik5BMSIsImN1aWQiOjM0NTQ5MDMwLCJscCI6ZmFsc2UsInBpZCI6Ik5BIiwidWlkIjozNDU0OTAzMH1dLCJleHAiOjE1NzMzNDI3MDIsImlhdCI6MTU3MzI1NjMwMiwiYWNjdCI6eyJnYW1lX25hbWUiOiJ3aGlzcGVyc3MiLCJ0YWdfbGluZSI6Ik5BIn0sImp0aSI6IkVtb2lrd2FlVjkwIiwibG9naW5fY291bnRyeSI6InVzYSJ9.RAgXY9Hw_5EPm6dKN8-UOeRFeqePk8UepANLS_cVczJKkH3teQcpio0AtymLVgXcNKQY-1coFhQ3NVK9wtHrAEpqih5-VkvuSe-XjVMCOga6oPTZ3L24Ot5r_TmiXG8yim8XQqcfHCcJhmYU-WuUKZPW8Is6-9rp5RvmMoLeVSs; __cfduid=dee6ed8d5b6483c7d3258dedf4afb0f5e1579888492; ajs_group_id=null; ajs_user_id=null; PVPNET_LANG=en_US; PVPNET_REGION=na; _ga=GA1.2.405645202.1579888494; _gid=GA1.2.574382688.1579888494; ping_session_id=bad535bc-37d2-4e9f-bbd9-152e7d111550"}
+    headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.117 Safari/537.36', 'cookie': f"id_token={ID_TOKEN};"}
     resp = r.get(url, headers=headers)
     while retry > 0 and resp.status_code != 200:
         retry -= 1
