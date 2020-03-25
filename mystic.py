@@ -140,7 +140,7 @@ def get_game_stats(game_info, retry=3):
     url = baseMatchHistoryStatsUrl.format(game_info["realm"],
                                           game_info["matchHistoryId"],
                                           game_info["hash"])
-    headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.117 Safari/537.36', 'cookie': "id_token={ID_TOKEN};"}
+    headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.117 Safari/537.36', 'cookie': f"id_token={ID_TOKEN};"}
     resp = r.get(url, headers=headers)
     while retry > 0 and resp.status_code != 200:
         retry -= 1
