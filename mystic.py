@@ -4,7 +4,7 @@ from collections import namedtuple
 from datetime import datetime, timedelta
 import unidecode
 from bs4 import BeautifulSoup
-from stone import ID_TOKEN
+from stone import ID_TOKEN, TIEBREAKERS
 
 # TODO(Alex.R) Move this information into stone
 # start_time = datetime(2019, 1, 15)
@@ -215,7 +215,8 @@ def get_from_leaguepedia(verbose=False):
             if verbose:
                 print(link)
                 print(game_info)
-            game_infos.append(game_info)
+            if game_info["hash"] not in TIEBREAKERS:
+                game_infos.append(game_info)
     return game_infos
 
 
