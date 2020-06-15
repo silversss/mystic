@@ -208,8 +208,7 @@ if __name__ == "__main__":
         if WEEK != "off":
             THE_POINTS = points_me_now(WEEK, use_leaguepedia=True)
             print(THE_POINTS)
-            # TODO Make this sheet
-            #write_weekly_points(THE_POINTS, WEEK)
+            write_weekly_points(THE_POINTS, WEEK)
             update_scores(THE_POINTS, WEEK, test=False)
     if sys.argv[1] == "update_stats":
         WEEK = int(sys.argv[2])

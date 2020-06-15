@@ -12,7 +12,6 @@ def get_week(ts, game_id=None):
     res = WEEK_OVERRIDES.get(game_id, (ts - start_time).days//7 + 1)
     if OFF_WEEK:
         if res == OFF_WEEK:
-
             return "off"
         elif res > OFF_WEEK:
             return res - 1
@@ -64,7 +63,8 @@ def process_game(game):
         minions = stats['totalMinionsKilled'] + stats['neutralMinionsKilled']
         player_stats.append(PlayerGameRecord(player_name.split()[1],
                                              game_time,
-                                             get_week(game_time),
+                                             # NOTE(Alex.R) We include the game id for float week.
+                                             get_week(game_time, game["id"]),
                                              game['gameId'],
                                              stats['kills'],
                                              stats['assists'],
@@ -80,7 +80,8 @@ def process_game(game):
         team_name = team_id_to_name[team['teamId']]
         team_stats.append(TeamGameRecord(team_name,
                                          game_time,
-                                         get_week(game_time),
+                                         # NOTE(Alex.R) We include the game id for float week.                                        
+                                         get_week(game_time, game["id"]),
                                          game['gameId'],
                                          team['win'] == "Win",
                                          team['firstBlood'],
@@ -189,7 +190,6 @@ def get_game_info_from_url(url):
 
 
 def get_from_leaguepedia(verbose=False):
-    """ This is for emergencies"""
     #llec = r.get("https://lol.gamepedia.com/LEC/2019_Season/Summer_Season")
     #llcs = r.get("https://lol.gamepedia.com/LCS/2019_Season/Summer_Season")
     #llec = r.get("https://lol.gamepedia.com/LEC/2020_Season/Spring_Season")
@@ -217,6 +217,7 @@ def build_leaguepedia_mystic_library():
     for game_info in game_infos:
         stats = get_game_stats(game_info)
         if stats:
+            stats["id"] = game_info["hash"]
             game_stats.append(stats)
     processed_games = [process_game(x) for x in game_stats]
     all_records = u.flatten(processed_games)
