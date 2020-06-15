@@ -9,7 +9,8 @@ from stone import ID_TOKEN, TIEBREAKERS
 # TODO(Alex.R) Move this information into stone
 # start_time = datetime(2019, 1, 15)
 #start_time = datetime(2019, 5, 28)
-start_time = datetime(2020, 1, 22)
+#start_time = datetime(2020, 1, 22)
+start_time = datetime(2020, 6, 10)
 WEEKS = [start_time + timedelta(weeks=i) for i in range(20)]
 
 
@@ -203,8 +204,10 @@ def get_from_leaguepedia(verbose=False):
     """ This is for emergencies"""
     #llec = r.get("https://lol.gamepedia.com/LEC/2019_Season/Summer_Season")
     #llcs = r.get("https://lol.gamepedia.com/LCS/2019_Season/Summer_Season")
-    llec = r.get("https://lol.gamepedia.com/LEC/2020_Season/Spring_Season")
-    llcs = r.get("https://lol.gamepedia.com/LCS/2020_Season/Spring_Season")
+    #llec = r.get("https://lol.gamepedia.com/LEC/2020_Season/Spring_Season")
+    #llcs = r.get("https://lol.gamepedia.com/LCS/2020_Season/Spring_Season")
+    llec = r.get("https://lol.gamepedia.com/LEC/2020_Season/Summer_Season")
+    llcs = r.get("https://lol.gamepedia.com/LCS/2020_Season/Summer_Season")
     lcs_soup = BeautifulSoup(llcs.text, 'html.parser')
     lec_soup = BeautifulSoup(llec.text, 'html.parser')
     game_infos = []

@@ -98,8 +98,8 @@ for fantasy_player in fantasy_players:
 import requests as r
 from bs4 import BeautifulSoup
 
-llec = r.get("https://lol.gamepedia.com/LEC/2020_Season/Spring_Season")
-llcs = r.get("https://lol.gamepedia.com/LCS/2020_Season/Spring_Season")
+llec = r.get("https://lol.gamepedia.com/LEC/2020_Season/Summer_Season")
+llcs = r.get("https://lol.gamepedia.com/LCS/2020_Season/Summer_Season")
 lcs_soup = BeautifulSoup(llcs.text, 'html.parser')
 lec_soup = BeautifulSoup(llec.text, 'html.parser')
 

@@ -187,7 +187,7 @@ def write_weekly_points(points, week):
 
 def end_of_season_results():
     standings = {team: {"win": 0, "loss": 0, "total": 0} for team in TEAMS}
-    for i in range(1, 9):
+    for i in range(1, 10):
         print("print for week {}".format(i))
         week_scores = read_weekly_results(i)
         matchups = SCHEDULE[i - 1]
@@ -208,7 +208,8 @@ if __name__ == "__main__":
         if WEEK != "off":
             THE_POINTS = points_me_now(WEEK, use_leaguepedia=True)
             print(THE_POINTS)
-            write_weekly_points(THE_POINTS, WEEK)
+            # TODO Make this sheet
+            #write_weekly_points(THE_POINTS, WEEK)
             update_scores(THE_POINTS, WEEK, test=False)
     if sys.argv[1] == "update_stats":
         WEEK = int(sys.argv[2])
@@ -221,6 +222,7 @@ if __name__ == "__main__":
             write_week_matchups(WEEK, region=sys.argv[2])
     if sys.argv[1] == "start_season":
         # NOTE(Alex.R) Assuming 9 weeks in the season
-        for i in range(9):
+        time.sleep(500)
+        for i in range(1,9):
             time.sleep(110)
             write_week_matchups(i, test=False, create_sheet=True)

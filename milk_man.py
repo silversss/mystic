@@ -68,8 +68,8 @@ def write_weekly_report(week, report):
                 mi["name"], mi["score"]))
 
 
-if False:
-    week = 1
+if True:
+    week = 9
     weekly_report = read_weekly_results(week)
     write_weekly_report(week, weekly_report)
     with open("week{}_newsletter.txt".format(week), "r") as f:
