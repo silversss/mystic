@@ -4,31 +4,19 @@ from collections import namedtuple
 from datetime import datetime, timedelta
 import unidecode
 from bs4 import BeautifulSoup
-from stone import ID_TOKEN, TIEBREAKERS
+from stone import ID_TOKEN, TIEBREAKERS, START_DATE, WEEK_OVERRIDES, OFF_WEEK
 
-# TODO(Alex.R) Move this information into stone
-# start_time = datetime(2019, 1, 15)
-#start_time = datetime(2019, 5, 28)
-#start_time = datetime(2020, 1, 22)
-start_time = datetime(2020, 6, 10)
-WEEKS = [start_time + timedelta(weeks=i) for i in range(20)]
+start_time = datetime.strptime(START_DATE, '%Y-%m-%d')
 
+def get_week(ts, game_id=None):
+    res = WEEK_OVERRIDES.get(game_id, (ts - start_time).days//7 + 1)
+    if OFF_WEEK:
+        if res == OFF_WEEK:
 
-def get_week(ts):
-    res = False
-    for i, week in enumerate(WEEKS):
-        if ts < week:
-            res = i
-            break
-    if res:
-        if res == 8:
             return "off"
-        elif res > 8:
+        elif res > OFF_WEEK:
             return res - 1
-        else:
-            return res
-    print("Something bad happened in get week")
-    return 10000
+    return res
 
 
 def get_this_week():
