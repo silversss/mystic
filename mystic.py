@@ -9,6 +9,8 @@ from stone import ID_TOKEN, TIEBREAKERS, START_DATE, WEEK_OVERRIDES, OFF_WEEK
 start_time = datetime.strptime(START_DATE, '%Y-%m-%d')
 
 def get_week(ts, game_id=None):
+    if ts < start_time:
+        return -1
     res = WEEK_OVERRIDES.get(game_id, (ts - start_time).days//7 + 1)
     if OFF_WEEK:
         if res == OFF_WEEK:
@@ -194,8 +196,10 @@ def get_from_leaguepedia(verbose=False):
     #llcs = r.get("https://lol.gamepedia.com/LCS/2019_Season/Summer_Season")
     #llec = r.get("https://lol.gamepedia.com/LEC/2020_Season/Spring_Season")
     #llcs = r.get("https://lol.gamepedia.com/LCS/2020_Season/Spring_Season")
-    llec = r.get("https://lol.gamepedia.com/LEC/2020_Season/Summer_Season")
-    llcs = r.get("https://lol.gamepedia.com/LCS/2020_Season/Summer_Season")
+    #llec = r.get("https://lol.gamepedia.com/LEC/2020_Season/Summer_Season")
+    #llcs = r.get("https://lol.gamepedia.com/LCS/2020_Season/Summer_Season")
+    llec = r.get("https://lol.gamepedia.com/LEC/2021_Season/Spring_Season")
+    llcs = r.get("https://lol.gamepedia.com/LCS/2021_Season/Spring_Season")    
     lcs_soup = BeautifulSoup(llcs.text, 'html.parser')
     lec_soup = BeautifulSoup(llec.text, 'html.parser')
     game_infos = []

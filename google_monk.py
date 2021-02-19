@@ -166,7 +166,7 @@ def write_stats():
 
 
 def write_weekly_points(points, week):
-    points_sheet = wks.worksheet("Player Points")
+    points_sheet = wks.worksheet("Player Page")
     read_cells = points_sheet.range(2, 1, 121, 1)
     week_col = 5 + week
     write_cells = points_sheet.range(2, week_col, 121, week_col)
@@ -222,6 +222,6 @@ if __name__ == "__main__":
     if sys.argv[1] == "start_season":
         # NOTE(Alex.R) Assuming 9 weeks in the season
         time.sleep(500)
-        for i in range(1,9):
-            time.sleep(110)
+        for i in range(2,10):
+            time.sleep(200)
             write_week_matchups(i, test=False, create_sheet=True)
