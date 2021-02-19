@@ -1,6 +1,6 @@
 import requests as r
 import utils as u
-from collections import namedtuple
+from collections import namedtuple, Counter
 from datetime import datetime, timedelta
 import unidecode
 from bs4 import BeautifulSoup
@@ -123,6 +123,13 @@ def get_points(week, all_records):
     for record in [x for x in all_records if x.game_week == week]:
         r_name = unidecode.unidecode(record.name.lower())
         res[r_name] = res.get(r_name, 0) + calculate_points(record)
+    return res
+
+def get_game_counts(week, all_records):
+    res = Counter()
+    for record in [x for x in all_records if x.game_week == week]:
+        r_name = unidecode.unidecode(record.name.lower())
+        res[r_name] += 1
     return res
 
 
@@ -265,7 +272,7 @@ def points_me_now(week, use_leaguepedia=False):
         mystic_library = build_leaguepedia_mystic_library()
     else:
         mystic_library = build_mystic_library()
-    return get_points(week, mystic_library)
+    return get_points(week, mystic_library), get_game_counts(week, mystic_library)
 
 
 def get_stats():

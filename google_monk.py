@@ -92,7 +92,7 @@ def col_to_let(col):
     return chr(col + 64)
 
 
-def update_scores(points, week, test=False):
+def update_scores(points, game_counts, week, test=False):
     week_name = get_week_name(week, test)
     week_sheet = wks.worksheet(week_name)
     read_cells = week_sheet.range(1, 2, 40, 2) + week_sheet.range(1, 5, 40, 5)
@@ -107,11 +107,13 @@ def update_scores(points, week, test=False):
                                                         write_cell.row + 8)
 
         pts = 0
+        games = 0
         for sheet_name in sheet_name.split("/"):
             name = NAME_FIXES.get(sheet_name, sheet_name).lower().strip()
             pts += points.get(name, 0)
+            games += game_counts.get(name, 0)            
         if pts:
-            write_cell.value = pts
+            write_cell.value = min(2.0, games) * pts / games
         else:
             print(name)
     week_sheet.update_cells(read_cells + write_cells,
@@ -206,14 +208,15 @@ if __name__ == "__main__":
     if sys.argv[1] == "update_points":
         WEEK = get_this_week()
         if WEEK != "off":
-            THE_POINTS = points_me_now(WEEK, use_leaguepedia=True)
+            THE_POINTS, THE_GAME_COUNTS = points_me_now(WEEK, use_leaguepedia=True)
             print(THE_POINTS)
-            write_weekly_points(THE_POINTS, WEEK)
-            update_scores(THE_POINTS, WEEK, test=False)
+            # FIXME(Alex.R)
+            #write_weekly_points(THE_POINTS, WEEK)
+            update_scores(THE_POINTS, THE_GAME_COUNTS,  WEEK, test=False)
     if sys.argv[1] == "update_stats":
         WEEK = int(sys.argv[2])
-        THE_POINTS = points_me_now(WEEK, use_leaguepedia=True)
-        print(THE_POINTS)
+        THE_POINTS, THE_GAME_COUNTS = points_me_now(WEEK, use_leaguepedia=True)
+        print(THE_POINTS)        
         write_weekly_points(THE_POINTS, WEEK)
     if sys.argv[1] == "lock_in":
         WEEK = get_this_week()
