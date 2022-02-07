@@ -35,7 +35,7 @@ def create_schedule(teams, weeks, seed):
     return stupid[:weeks]
 
 
-SCHEDULE = create_schedule(TEAMS, 9, SEED)
+SCHEDULE = create_schedule(TEAMS, 17, SEED)
 
 # TODO(Alex.R) Move this out into a proper test.
 if False:

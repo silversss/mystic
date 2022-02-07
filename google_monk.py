@@ -167,7 +167,7 @@ def write_stats():
     print("Wrote to the sheet")
 
 
-def write_weekly_points(points, week):
+def write_weekly_points(points, game_counts,  week):
     points_sheet = wks.worksheet("Player Page")
     read_cells = points_sheet.range(2, 1, 121, 1)
     week_col = 5 + week
@@ -175,11 +175,13 @@ def write_weekly_points(points, week):
     for read_cell, write_cell in zip(read_cells, write_cells):
         sheet_name = read_cell.value
         pts = 0
+        games = 0
         for sheet_name in sheet_name.split("/"):
             name = NAME_FIXES.get(sheet_name, sheet_name).lower().strip()
             pts += points.get(name, 0)
+            games += game_counts.get(name, 0)
         if pts:
-            write_cell.value = pts
+            write_cell.value = min(2.0, games) * pts / games
         else:
             print("No Points?")
             print(name)
@@ -208,23 +210,21 @@ if __name__ == "__main__":
     if sys.argv[1] == "update_points":
         WEEK = get_this_week()
         if WEEK != "off":
-            THE_POINTS, THE_GAME_COUNTS = points_me_now(WEEK, use_leaguepedia=True)
+            THE_POINTS, THE_GAME_COUNTS = points_me_now(WEEK)
             print(THE_POINTS)
             # FIXME(Alex.R)
-            #write_weekly_points(THE_POINTS, WEEK)
+            write_weekly_points(THE_POINTS, THE_GAME_COUNTS, WEEK)
             update_scores(THE_POINTS, THE_GAME_COUNTS,  WEEK, test=False)
     if sys.argv[1] == "update_stats":
         WEEK = int(sys.argv[2])
-        THE_POINTS, THE_GAME_COUNTS = points_me_now(WEEK, use_leaguepedia=True)
+        THE_POINTS, THE_GAME_COUNTS = points_me_now(WEEK)
         print(THE_POINTS)        
-        write_weekly_points(THE_POINTS, WEEK)
+        write_weekly_points(THE_POINTS, THE_GAME_COUNTS, WEEK)
     if sys.argv[1] == "lock_in":
         WEEK = get_this_week()
         if WEEK != "off":
             write_week_matchups(WEEK, region=sys.argv[2])
     if sys.argv[1] == "start_season":
-        # NOTE(Alex.R) Assuming 9 weeks in the season
-        time.sleep(500)
-        for i in range(2,10):
-            time.sleep(200)
+        for i in range(4,10):
             write_week_matchups(i, test=False, create_sheet=True)
+            time.sleep(200)

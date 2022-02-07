@@ -1,4 +1,5 @@
 import requests as r
+import json
 import utils as u
 from collections import namedtuple, Counter
 from datetime import datetime, timedelta
@@ -11,12 +12,12 @@ start_time = datetime.strptime(START_DATE, '%Y-%m-%d')
 def get_week(ts, game_id=None):
     if ts < start_time:
         return -1
-    res = WEEK_OVERRIDES.get(game_id, (ts - start_time).days//7 + 1)
+    res = WEEK_OVERRIDES.get(game_id, (ts - start_time).days//7 + 1)    
     if OFF_WEEK:
         if res == OFF_WEEK:
             return "off"
         elif res > OFF_WEEK:
-            return res - 1
+            return res - 12
     return res
 
 
@@ -54,43 +55,42 @@ TeamGameRecord = namedtuple('TeamGameRecord', ['name',
 
 
 def process_game(game):
-    par_id_to_name = {x['participantId']: x['player']['summonerName'] for x in game['participantIdentities']}
     player_stats = []
     game_time = fix_time(game['gameCreation'])
     team_id_to_name = {}
     fast = game["gameDuration"]/60 < 30
     for par in game["participants"]:
-        player_name = par_id_to_name[par['participantId']]
-        stats = par['stats']
-        minions = stats['totalMinionsKilled'] + stats['neutralMinionsKilled']
+        player_name = par["summonerName"]
+        minions = par['totalMinionsKilled'] + par['neutralMinionsKilled']
         player_stats.append(PlayerGameRecord(player_name.split()[1],
                                              game_time,
                                              # NOTE(Alex.R) We include the game id for float week.
-                                             get_week(game_time, game["id"]),
+                                             get_week(game_time, game["gameId"]),
                                              game['gameId'],
-                                             stats['kills'],
-                                             stats['assists'],
-                                             stats['deaths'],
-                                             stats['doubleKills'],
-                                             stats['tripleKills'],
-                                             stats['quadraKills'],
-                                             stats['pentaKills'],
+                                             par['kills'],
+                                             par['assists'],
+                                             par['deaths'],
+                                             par['doubleKills'],
+                                             par['tripleKills'],
+                                             par['quadraKills'],
+                                             par['pentaKills'],
                                              minions))
         team_id_to_name[par['teamId']] = player_name.split()[0]
     team_stats = []
     for team in game["teams"]:
         team_name = team_id_to_name[team['teamId']]
+        objectives = team["objectives"]
         team_stats.append(TeamGameRecord(team_name,
                                          game_time,
-                                         # NOTE(Alex.R) We include the game id for float week.                                        
-                                         get_week(game_time, game["id"]),
+                                         # NOTE(Alex.R) We include the game id for float week.
+                                         get_week(game_time, game["gameId"]),
                                          game['gameId'],
-                                         team['win'] == "Win",
-                                         team['firstBlood'],
-                                         team['towerKills'],
-                                         team['dragonKills'],
-                                         team['baronKills'],
-                                         fast and team['win'] == "Win"))
+                                         team['win'],
+                                         objectives["champion"]["first"],
+                                         objectives["tower"]["kills"],
+                                         objectives["dragon"]["kills"],
+                                         objectives["baron"]["kills"],
+                                         fast and team['win']))
     return player_stats + team_stats
 
 
@@ -133,6 +133,7 @@ def get_game_counts(week, all_records):
     return res
 
 
+# NOTE(Alex.R) Keeping this around in case the riot api is needed again.
 def get_game_stats(game_info, retry=3):
     if not game_info.get("hash"):
         return None
@@ -152,50 +153,29 @@ def get_game_stats(game_info, retry=3):
 
 
 
-def get_all_stats(league, key, verbose=False):
-    games = {}
-    matches = []
-    bracket = league["brackets"][key]
-    for matchId in league["brackets"][key]["matches"]:
-        match = bracket["matches"][matchId]
-        for gameUuid in match['games']:
-            game = match['games'][gameUuid]
-            if 'gameId' in game:
-                matches.append(matchId)
-                games[gameUuid] = {"matchHistoryId": game['gameId'],
-                                   "realm": game["gameRealm"]}
-    if verbose:
-        print("The games")
-        print(len(games))
-    tournamentId = league["id"]
-    baseMatchUrl = "http://api.lolesports.com/api/v2/highlanderMatchDetails?tournamentId={}&matchId={}"
-    for matchId in matches:
-        url = baseMatchUrl.format(tournamentId, matchId)
-        resp = r.get(url)
-        matchData = resp.json()
-        for i in matchData["gameIdMappings"]:
-            games[i["id"]]["hash"] = i["gameHash"]
-    if verbose:
-        print("Games with gameHash")
-        print(games)
-    game_stats = []
-    for k, game_info in games.items():
-        stats = get_game_stats(game_info)
-        if stats:
-            game_stats.append(stats)
-    return game_stats
+def stats_from_leaguepedia(stats_page):
+    URL = "https://lol.fandom.com/api.php"
+    params = {"action": "query",
+              "format": "json",
+              "prop": "revisions",
+              "titles": stats_page,
+              "rvprop": "content",
+              "rvslots": "main"}
+
+    resp = r.get(URL, params)
+
+    pages = resp.json()["query"]["pages"]
+    if len(pages.keys()) != 1:
+        print("Something is off don't have right return from leaguepedia")
+    the_page = list(pages.values())[0]
+    stats = json.loads(the_page["revisions"][0]["slots"]["main"]["*"])
+    return stats
 
 
-def get_game_info_from_url(url):
-    split_up = url.split("/")
-    last_part = split_up[-1]
-    _id, rest = last_part.split("?")
-    hash_part = rest.split("&")[0]
-    _hash = hash_part.split("=")[1]
+def stats_page_from_url(url):
+    _id = url.split(":")[1]
+    return "V5_data:"+ _id
 
-    return {"realm": split_up[5],
-            "hash": _hash,
-            "matchHistoryId": _id}
 
 
 def get_from_leaguepedia(verbose=False):
@@ -205,73 +185,43 @@ def get_from_leaguepedia(verbose=False):
     #llcs = r.get("https://lol.gamepedia.com/LCS/2020_Season/Spring_Season")
     #llec = r.get("https://lol.gamepedia.com/LEC/2020_Season/Summer_Season")
     #llcs = r.get("https://lol.gamepedia.com/LCS/2020_Season/Summer_Season")
-    llec = r.get("https://lol.gamepedia.com/LEC/2021_Season/Spring_Season")
-    llcs = r.get("https://lol.gamepedia.com/LCS/2021_Season/Spring_Season")    
+    #llec = r.get("https://lol.gamepedia.com/LEC/2021_Season/Spring_Season")
+    #llcs = r.get("https://lol.gamepedia.com/LCS/2021_Season/Spring_Season")
+    #llec = r.get("https://lol.gamepedia.com/LEC/2021_Season/Summer_Season")
+    #llcs = r.get("https://lol.gamepedia.com/LCS/2021_Season/Summer_Season")
+    llec = r.get("https://lol.gamepedia.com/LEC/2022_Season/Spring_Season")
+    llcs = r.get("https://lol.gamepedia.com/LCS/2022_Season/Spring_Season")
     lcs_soup = BeautifulSoup(llcs.text, 'html.parser')
     lec_soup = BeautifulSoup(llec.text, 'html.parser')
-    game_infos = []
+    stats_pages = []    
     for link in lcs_soup.find_all('a') + lec_soup.find_all('a'):
         link = link.get('href')
-        if link and "matchhistory." in link:
-            game_info = get_game_info_from_url(link)
+        if link and "/wiki/V5_metadata:ESPORTS" in link:
+            stats_page = stats_page_from_url(link)
             if verbose:
                 print(link)
                 print(game_info)
-            if game_info["hash"] not in TIEBREAKERS:
-                game_infos.append(game_info)
-    return game_infos
+            if stats_page not in TIEBREAKERS:
+                stats_pages.append(stats_page)
+    stats_pages = list(set(stats_pages))
+    return stats_pages
 
 
 def build_leaguepedia_mystic_library():
-    game_infos = get_from_leaguepedia()
+    stats_pages = get_from_leaguepedia()
     game_stats = []
-    for game_info in game_infos:
-        stats = get_game_stats(game_info)
+    for stats_page in stats_pages:
+        stats = stats_from_leaguepedia(stats_page)
         if stats:
-            stats["id"] = game_info["hash"]
+            stats["id"] = stats["gameId"]
             game_stats.append(stats)
     processed_games = [process_game(x) for x in game_stats]
     all_records = u.flatten(processed_games)
     return all_records
 
 
-def build_mystic_library():
-    na = r.get(
-        "http://api.lolesports.com/api/v1/scheduleItems?leagueId=2").json()
-    eu = r.get(
-        "http://api.lolesports.com/api/v1/scheduleItems?leagueId=3").json()
-    # Spring 2019
-    # lec = eu["highlanderTournaments"][8]
-    # lcs = na["highlanderTournaments"][6]
-    # Summer 2019
-    lec = eu["highlanderTournaments"][9]
-    lcs = na["highlanderTournaments"][7]
-
-    # Spring 2019
-    # lec_reg_season_key = 'd78b9f9d-0ae3-416d-b458-a048143a177c'
-    # lcs_reg_season_key = '62ae61a3-7761-40a0-8a50-99d680b0ddea'
-
-    # Summer 2019
-    lec_reg_season_key = '5a554448-fd18-4539-89b5-6f36e3d9e310'
-    lcs_reg_season_key = '11cbd265-9788-4034-a9d5-6c0b53c19fb7'
-
-    lec_stats = get_all_stats(lec, lec_reg_season_key)
-    lcs_stats = []
-    try:
-        lcs_stats = get_all_stats(lcs, lcs_reg_season_key)
-    except:
-        print("Looks like lcs has not started yet")
-    all_stats = lec_stats + lcs_stats
-    processed_games = [process_game(x) for x in all_stats]
-    all_records = u.flatten(processed_games)
-    return all_records
-
-
-def points_me_now(week, use_leaguepedia=False):
-    if use_leaguepedia:
-        mystic_library = build_leaguepedia_mystic_library()
-    else:
-        mystic_library = build_mystic_library()
+def points_me_now(week):
+    mystic_library = build_leaguepedia_mystic_library()
     return get_points(week, mystic_library), get_game_counts(week, mystic_library)
 
 
