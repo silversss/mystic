@@ -225,10 +225,9 @@ def stats_from_leaguepedia(stats_page):
     return stats
 
 
-def stats_page_from_url(url):
+def stats_page_from_url(url,version="V5"):
     _id = url.split(":")[1]
-    return "V5_data:"+ _id
-
+    return "{}_data:".format(version)+ _id
 
 
 def get_from_leaguepedia(verbose=False):
@@ -256,8 +255,17 @@ def get_from_leaguepedia(verbose=False):
                 print(link)
                 print(stats_page)
             if stats_page not in TIEBREAKERS:
-                stats_pages.append(stats_page)
-    stats_pages = list(set(stats_pages))
+                stats_pages.append({"page": stats_page, "version": "V5"})
+    #stats_pages = list(set(stats_pages))
+    for link in lcs_soup.find_all('a') + lec_soup.find_all('a'):
+        link = link.get('href')
+        if link and "/wiki/V4_metadata:ESPORTS" in link:
+            stats_page = stats_page_from_url(link,version="V4")
+            if verbose:
+                print(link)
+                print(stats_page)
+            if stats_page not in TIEBREAKERS:
+                stats_pages.append({"page": stats_page, "version": "V4"})
     for link in lcs_soup.find_all('a') + lec_soup.find_all('a'):
         link = link.get('href')
         if link and 'matchhistory.' in link:
@@ -275,10 +283,17 @@ def build_leaguepedia_mystic_library():
     game_stats = []
     old_stats = []
     for stats_page in stats_pages:
+        version = stats_page["version"]
+        stats_page = stats_page["page"]
         stats = stats_from_leaguepedia(stats_page)
         if stats:
             stats["id"] = stats["gameId"]
-            game_stats.append(stats)
+            if version == "V5":
+                game_stats.append(stats)
+            elif version == "V4":
+                old_stats.append(stats)
+            else:
+                print("Wrong version passed")
     for game_info in game_infos:
         stats = get_game_stats(game_info)
         old_stats.append(stats)
