@@ -69,7 +69,7 @@ def write_weekly_report(week, report):
 
 
 if True:
-    week = 12
+    week = 1
     weekly_report = read_weekly_results(week)
     write_weekly_report(week, weekly_report)
     with open("week{}_newsletter.txt".format(week), "r") as f:
